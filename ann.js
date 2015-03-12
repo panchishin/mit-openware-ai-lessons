@@ -1,17 +1,10 @@
-var assert = require("assert");
+
 
 
 var sigmoid = function( t ) {
 	return 1 / ( 1 + Math.pow( Math.E , -t ) );
 }
-assert.equal( sigmoid(0) , 0.5 );
 
-
-var layers = [
-	{ nodes : [ 0.35 , 0.9 ] },
-	{ nodes : [ 0 , 0 ] , connections : [[ 0.1 , 0.8 ],[ 0.4 , 0.6 ]] },
-	{ nodes : [ 0 ] , connections : [[ 0.3 , 0.9 ]] }
-];
 
 
 var updateOneLayersWeight = function( layer , previousLayer ) {
@@ -24,16 +17,15 @@ var updateOneLayersWeight = function( layer , previousLayer ) {
 		layer.nodes[n] = sigmoid(layer.nodes[n]);
 	}
 }
+
 var updateWeights = function( layers ) {
 	for( var i = 1 ; i < layers.length ; i++ ) {
 		updateOneLayersWeight( layers[i] , layers[i-1] );
 	}
 };
-updateWeights(layers);
 
-assert.equal( Math.round(100*layers[2].nodes[0]) , 69 );
 
-/*
+
 var updateOneLayersError = function( layer , previousLayer ) {
 	layer.error = [];
 	for( var n in layer.nodes ) {
@@ -49,35 +41,50 @@ var updateOneLayersError = function( layer , previousLayer ) {
 	}
 }
 
-var updateErrors = function( layers , errors) {
-	updateOneLayersError( layers[layers.length - 1] , errors );
-	for( var i = layers.length - 2 ; i >= 0 ; i-- ) {
-		updateOneLayersError( layers[i+1] , layers[i] );		
-	}
-}
-*/
-var outputError = function( expected , actual ) {
-	return ( expected - actual ) * ( 1 - actual ) * actual;
-}
 
-assert.equal( Math.round(10000*outputError( 0.5 , 0.69 )) , -406 );
+var updateConnectionWeights = function( layer , previousLayer ) {
+	var errorLayer = previousLayer.error;
+	var nodeLayer = layer.nodes;
+	var connectionLayer = previousLayer.connections;
 
-
-var newConnectionWeights = function( errorLayer , nodeLayer , connectionLayer ) {
-	var newConnectionWeights = [ ];
 	for( var n in nodeLayer ) {
-		newConnectionWeights[n] = 0;
 		for( var e in errorLayer ) {
-			newConnectionWeights[n] += connectionLayer[e][n] + ( errorLayer[e] * nodeLayer[n] );
+			connectionLayer[e][n] = connectionLayer[e][n] + ( errorLayer[e] * nodeLayer[n] );
 		}
 	}
-	return newConnectionWeights;
 }
 
-assert.equal( Math.round( 100000 * newConnectionWeights( [-0.0406] , layers[1].nodes , layers[2].connections )[0] ) , 27238 );
+
+var test = function() {
+
+	var assert = require("assert");
+	assert.equal( sigmoid(0) , 0.5 );
+
+	var layers = [
+		{ nodes : [ 0.35 , 0.9 ] },
+		{ nodes : [ 0 , 0 ] , connections : [[ 0.1 , 0.8 ],[ 0.4 , 0.6 ]] },
+		{ nodes : [ 0 ] , connections : [[ 0.3 , 0.9 ]] }
+	];
+
+	updateWeights(layers);
+
+	assert.equal( Math.round(100*layers[2].nodes[0]) , 69 );
+
+	updateOneLayersError( layers[2] , [0.5] );
+
+	assert.equal( Math.round(100000 * layers[2].error[0] ) , -4068 );
+
+	layers[2].error = [ -0.0406 ];
+	updateConnectionWeights( layers[1] , layers[2] );
+	assert.equal( Math.round( 100000 * layers[2].connections[0][0] ) , 27238 );
+	assert.equal( Math.round( 100000 * layers[2].connections[0][1] ) , 87305 );
+
+	console.log("Success");
+
+}
+
+test();
 
 
 
 
-
-console.log("Success");
