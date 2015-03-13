@@ -61,8 +61,18 @@ var createRandomConnections = function( X , Y ) {
 	return connections;
 }
 
-var create = function( inputs , hiddenLayers , hiddenNodesPerLayer , outputs ) {
-	assert( hiddenLayers > 0 );
+var fail = function( message ) {
+	throw message;
+}
+
+var create = function( request ) { //inputs , hiddenLayers , hiddenNodesPerLayer , outputs ) {
+
+	var inputs = request.inputs;
+	var hiddenLayers = request.hiddenLayers || 1;
+	var hiddenNodesPerLayer = request.hiddenNodesPerLayer || inputs * 5;
+	var outputs = request.outputs || inputs;
+
+	( hiddenLayers > 0 ) || fail("Must have at least 1 hidden layer");
 	
 	var layers = [];
 	
@@ -82,9 +92,14 @@ var create = function( inputs , hiddenLayers , hiddenNodesPerLayer , outputs ) {
 	return layers;
 }
 
+var clone = function( data ) {
+	return JSON.parse(JSON.stringify(data));
+}
+
 var predict = function( input , layers ) {
-	layers[0].nodes = JSON.parse(JSON.stringify(input));
-	if ( layers[1].connections[0].length > input.length ) {
+	(layers[1].connections[0].length >= input.length) || fail("The input is larger than the connections");
+	layers[0].nodes = clone(input);
+	while ( layers[1].connections[0].length > layers[0].nodes ) {
 		layers[0].nodes.push(-1);
 	}
 	updateNodeValues(layers);
@@ -130,7 +145,8 @@ var test = function() {
 		{ connections : [[ 0.3 , 0.9 ]] }
 	];
 
-	layers = create( 1 , 1 , 2 , 1 );
+	layers = create( { inputs : 1 } ); // 1 , 1 , 2 , 1 );
+	layers = create( { inputs : 1 , hiddenLayers : 1 , hiddenNodesPerLayer : 2 , outputs : 1 } );
 
 	for( var i = 0 ; i < 10 ; i++ ) {	
 		predict( [0.35] , layers);
@@ -139,6 +155,14 @@ var test = function() {
 		predict( [0.35] , layers);
 		assert( Math.pow( 0.5 - layers[2].nodes[0] , 2 ) < preTrain );
 	}
+	
+	layers = create( { inputs : 2 , hiddenLayers : 4 , hiddenNodesPerLayer : 5 , outputs : 6 } );
+	assert.equal( layers.length , 4 + 2 );
+	assert.equal( layers[0].nodes.length , 2 + 1 );
+	assert.equal( layers[1].connections.length , 5 );
+	assert.equal( layers[1].connections[0].length , 2 + 1 );
+
+
 	
 	layers = [
 		{ nodes : [ 0.35 , 0.9 ] },
@@ -187,12 +211,6 @@ var test = function() {
 	assert.equal( randomConnections.length , 2 );
 	assert.equal( randomConnections[0].length , 3 );
 	
-	layers = create(2 , 4 , 5 , 6 );
-	assert.equal( layers.length , 4 + 2 );
-	assert.equal( layers[0].nodes.length , 2 + 1 );
-	assert.equal( layers[1].connections.length , 5 );
-	assert.equal( layers[1].connections[0].length , 2 + 1 );
-
 
 	console.log("Success");
 
