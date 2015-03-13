@@ -35,7 +35,6 @@ var updateOneLayersError = function( layer , previousLayer ) {
 	}
 }
 
-
 var updateConnectionWeights = function( layer , previousLayer , learningRate ) {
 	learningRate = learningRate ? learningRate : 1;
 	var errorLayer = previousLayer.error;
@@ -65,37 +64,6 @@ var fail = function( message ) {
 	throw message;
 }
 
-var create = function( request ) { //inputs , hiddenLayers , hiddenNodesPerLayer , outputs ) {
-
-	var inputs = request.inputs;
-	var hiddenLayers = request.hiddenLayers || 1;
-	var hiddenNodesPerLayer = request.hiddenNodesPerLayer || inputs * 5;
-	var outputs = request.outputs || inputs;
-
-	( hiddenLayers > 0 ) || fail("Must have at least 1 hidden layer");
-	
-	var layers = [];
-	
-	var nodes = [];
-	for( var i = 0 ; i <= inputs ; i++ ) {
-		nodes.push( -1 );
-	}
-	layers.push( { nodes : nodes } );
-	
-	layers.push( { connections : createRandomConnections( hiddenNodesPerLayer , inputs + 1 ) } );
-
-	for( var h = 1 ; h < hiddenLayers ; h++ ) {
-		layers.push( { connections : createRandomConnections( hiddenNodesPerLayer , hiddenNodesPerLayer ) } );
-	}
-	layers.push( { connections : createRandomConnections( outputs , hiddenNodesPerLayer ) } );
-
-	return layers;
-}
-
-var clone = function( data ) {
-	return JSON.parse(JSON.stringify(data));
-}
-
 var predict = function( input , layers ) {
 	(layers[1].connections[0].length >= input.length) || fail("The input is larger than the connections");
 	layers[0].nodes = clone(input);
@@ -116,6 +84,55 @@ var train = function( input , layers , expectedOutput , learningRate ) {
 	}
 
 }
+
+var create = function( request ) { //inputs , hiddenLayers , hiddenNodesPerLayer , outputs ) {
+
+	var inputs = request.inputs;
+	var hiddenLayers = request.hiddenLayers || 1;
+	var hiddenNodesPerLayer = request.hiddenNodesPerLayer || inputs * 5;
+	var outputs = request.outputs || inputs;
+	var learningRate = request.learningRate || 1;
+
+	( hiddenLayers > 0 ) || fail("Must have at least 1 hidden layer");
+	
+	var layers = [];
+	
+	var nodes = [];
+	for( var i = 0 ; i <= inputs ; i++ ) {
+		nodes.push( -1 );
+	}
+	layers.push( { nodes : nodes } );
+	
+	layers.push( { connections : createRandomConnections( hiddenNodesPerLayer , inputs + 1 ) } );
+
+	for( var h = 1 ; h < hiddenLayers ; h++ ) {
+		layers.push( { connections : createRandomConnections( hiddenNodesPerLayer , hiddenNodesPerLayer ) } );
+	}
+	layers.push( { connections : createRandomConnections( outputs , hiddenNodesPerLayer ) } );
+
+	return { 
+		layers : layers,
+		learningRate : learningRate,
+		predict : function( input ) {
+			predict( input , this.layers );
+		},
+		train : function( input , output , learningRate ) {
+			train( input , this.layers , output , learningRate || this.learningRate );
+		},
+		clone : function() {
+			var item = create( { inputs : 1 } );
+			item.layers = JSON.parse(JSON.stringify( this.layers ));
+			item.learningRate = this.learningRate;
+			return item;
+		}
+	}
+		
+}
+
+var clone = function( data ) {
+	return JSON.parse(JSON.stringify(data));
+}
+
 
 
 var test = function() {
@@ -146,17 +163,17 @@ var test = function() {
 	];
 
 	layers = create( { inputs : 1 } ); // 1 , 1 , 2 , 1 );
-	layers = create( { inputs : 1 , hiddenLayers : 1 , hiddenNodesPerLayer : 2 , outputs : 1 } );
+	var obj = layers = create( { inputs : 1 , hiddenLayers : 1 , hiddenNodesPerLayer : 2 , outputs : 1 } );
 
 	for( var i = 0 ; i < 10 ; i++ ) {	
-		predict( [0.35] , layers);
-		var preTrain = Math.pow( 0.5 - layers[2].nodes[0] , 2 );
-		train( [0.35] , layers , [.5] );
-		predict( [0.35] , layers);
-		assert( Math.pow( 0.5 - layers[2].nodes[0] , 2 ) < preTrain );
+		obj.predict( [0.35] );
+		var preTrain = Math.pow( 0.5 - obj.layers[2].nodes[0] , 2 );
+		obj.train( [0.35] , [.5] );
+		obj.predict( [0.35] );
+		assert( Math.pow( 0.5 - obj.layers[2].nodes[0] , 2 ) < preTrain );
 	}
 	
-	layers = create( { inputs : 2 , hiddenLayers : 4 , hiddenNodesPerLayer : 5 , outputs : 6 } );
+	layers = create( { inputs : 2 , hiddenLayers : 4 , hiddenNodesPerLayer : 5 , outputs : 6 } ).clone().layers;
 	assert.equal( layers.length , 4 + 2 );
 	assert.equal( layers[0].nodes.length , 2 + 1 );
 	assert.equal( layers[1].connections.length , 5 );
