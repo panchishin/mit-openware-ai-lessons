@@ -14,7 +14,7 @@ Example
 
 var table = [ [ 'B1' , 'BX' ] , [] , [ 'B2' , 'BY' ] ];
 
-var 	PUT_ON = "PUT_ON", 
+var PUT_ON = "PUT_ON", 
 	FIND_SPACE = "FIND_SPACE",
 	GRASP = "GRASP" ,
 	CLEAR_TOP = "CLEAR_TOP",
