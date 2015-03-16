@@ -1,0 +1,9 @@
+lecture 3
+
+L1 Goal Centered Programming
+	Blocks
+	Questions
+L2 Rule Based "Expert" Systems
+	Zoos
+	Questions
+	Knowledge Engineering

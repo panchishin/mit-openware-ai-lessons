@@ -1,0 +1,16 @@
+Lecture 2
+
+
+Problem Reduction
+	safe transforms
+	'and' nodes and 'or' nodes
+	heuristic transforms
+	knowledge in lookup tables
+	transformations are used to reduce the problem
+	
+	
+apply save transforms
+look up table
+complete? then exit
+look for problem
+apply heuristic transforms
