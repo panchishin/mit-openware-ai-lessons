@@ -48,4 +48,7 @@ FIND_SPACE	GRASP B1	MOVE	UNGRASP
 This is an AND / OR Goal tree.
 PUT_ON B1 B2 leads to an AND of : FIND_SPACE, GRASP B1, MOVE, and UNGRASP
 
+GOLD STAR IDEA : the complexity of behavior is the max of the complexity of the program and environment
+
+
 
