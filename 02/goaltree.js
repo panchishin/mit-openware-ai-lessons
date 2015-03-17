@@ -107,16 +107,16 @@ var test = function() {
 		assert( false );
 	} catch (e) { }
 
-	assert.equal( "6" , findGoal("1 + 2 + 3").result );
-	assert.equal( 3 , findGoal("1 + 2 + 3").procedure.length );
-	assert.equal( "6" , findGoal("5 - 2 + 3").result );
-	assert.equal( 3 , findGoal("5 - 2 + 3").procedure.length );
-	assert.equal( "6" , findGoal("2 * 3").result );
-	assert.equal( "14" , findGoal("5 - 2 + 3 * 2 - 10 * 7").result );
-	assert.equal( 6 , findGoal("5 - 2 + 3 * 2 - 10 * 7").procedure.length );
+	assert.equal( "6" , findGoal(transforms,"1 + 2 + 3").result );
+	assert.equal( 3 , findGoal(transforms,"1 + 2 + 3").procedure.length );
+	assert.equal( "6" , findGoal(transforms,"5 - 2 + 3").result );
+	assert.equal( 3 , findGoal(transforms,"5 - 2 + 3").procedure.length );
+	assert.equal( "6" , findGoal(transforms,"2 * 3").result );
+	assert.equal( "14" , findGoal(transforms,"5 - 2 + 3 * 2 - 10 * 7").result );
+	assert.equal( 6 , findGoal(transforms,"5 - 2 + 3 * 2 - 10 * 7").procedure.length );
 
 	try {
-		findGoal("5 - 2 + 3 + 7 / 6");
+		findGoal(transforms,"5 - 2 + 3 + 7 / 6");
 		assert( false );
 	} catch ( error ) {
 		assert.equal( "No progress made" , error.message );
