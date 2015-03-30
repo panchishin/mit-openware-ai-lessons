@@ -51,7 +51,26 @@ var transforms = {
 			data : string.replace(/[0-9]+ *\* *[0-9]+/, parseInt(vals[0]) * parseInt(vals[1])),
 			log : "Multiply " + vals[0] + " and " + vals[1]
 		}
-	}
+	},
+	"brackets" : function( string ) {
+		string.match(/^[^\)]*\([^\(]*\)/) || fail( "No brackets" )
+		var pre = string.match(/^[^\)]*\(/)[0].replace(/\($/,"")
+		var rest = string.replace(/^[^\)]*\(/,"")
+		var inside = rest.match(/^[^\)]*\)/)[0].replace(/\)$/,"")
+		var post = rest.replace(/^[^\)]*\)/,"")
+		var insideResult = findGoal( transforms , inside )
+
+		return {
+			data : pre + insideResult.result + post,
+			log : "Bracket eval of " + inside + " is " + insideResult,
+			successCallback : function( goalResult ) {
+				return {
+					data : pre + goalResult.result + post,
+					log : "Bracket end of " + inside + " is " + goalResult.result
+				}
+			}
+		}
+	}		
 };
 
 var tryTransforms = function( transforms , data ) {
@@ -107,6 +126,8 @@ var test = function() {
 		assert( false );
 	} catch (e) { }
 
+	assert.equal( 5 , transforms.brackets("(5)").data );
+
 	assert.equal( "6" , findGoal(transforms,"1 + 2 + 3").result );
 	assert.equal( 3 , findGoal(transforms,"1 + 2 + 3").procedure.length );
 	assert.equal( "6" , findGoal(transforms,"5 - 2 + 3").result );
@@ -114,6 +135,8 @@ var test = function() {
 	assert.equal( "6" , findGoal(transforms,"2 * 3").result );
 	assert.equal( "14" , findGoal(transforms,"5 - 2 + 3 * 2 - 10 * 7").result );
 	assert.equal( 6 , findGoal(transforms,"5 - 2 + 3 * 2 - 10 * 7").procedure.length );
+	assert.equal( "14" , findGoal(transforms,"7 - (2 + 3) * 3 - 4 * 7").result );
+	assert.equal( "9" , findGoal(transforms,"20 - ((2 + 3 * 3) - 4)").result );
 
 	try {
 		findGoal(transforms,"5 - 2 + 3 + 7 / 6");
