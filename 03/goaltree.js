@@ -20,42 +20,60 @@ var PUT_ON = "PUT_ON",
 	CLEAR_TOP = "CLEAR_TOP",
 	GET_RID_OF = "GET_RID_OF",
 	MOVE = "MOVE",
-	UNGRASP = "UNGRASP";
+	UNGRASP = "UNGRASP",
+	DONE = "DONE";
 
-var rules = {
-	TABLE : table ,
-	FIND_LOCATION : function( object ) {
-		for( var position in this.table ) {
-			for( height in this.table[position] ) {
-				if ( object == this.table[position][height] ) {
-					return {
-						POSITION : position,
-						HEIGHT : height,
-						IS_ON_TOP : height + 1 == this.table[position].length
-					};
-				}
+var FIND_LOCATION = function( object ) {
+	for( var position in table ) {
+		for( height in table[position] ) {
+			if ( object == table[position][height] ) {
+				return {
+					POSITION : position,
+					HEIGHT : height,
+					IS_ON_TOP : height + 1 == table[position].length
+				};
 			}
 		}
-		throw "ERROR";
-	},
+	}
+	throw "ERROR";
+}
+
+
+var rules = {
 	PUT_ON : function( object , target ) {
-		return [
-		[ FIND_SPACE , target ],
-		[ GRASP , object ],
-		[ MOVE , object ],
-		[ UNGRASP , object ]
-		];
-	},
-	FIND_SPACE : function( target ) {
-		var location = this.FIND_LOCATION(target);
-		if ( location.IS_ON_TOP ) {
-			return [];
-		} else {
-			return [
-			[ GET_RID_OF , this.table[location.POSITION][ this.table[location.POSITION].length ] ] ,
-			[ FIND_SPACE , target ]
-			];
+		
+		var object_location = FIND_LOCATION(object);
+		var target_location = FIND_LOCATION(target);
+		
+		if ( object_location.POSITION == target_location.POSITION && 
+			object_location.HEIGHT = target_location.HEIGHT + 1 ) {
+			return { NODE_NAME : DONE }
 		}
+
+		return {
+			NODE_NAME : PUT_ON ,
+			NODE_TYPE : "and" ,
+			ACTIONS : [
+				{ ACTION : FIND_SPACE , PARAMETERS : [ target ] },
+				{ ACTION : GRASP , 		PARAMETERS : [ object ] },
+				{ ACTION : MOVE , 		PARAMETERS : [ object ] },
+				{ ACTION : UNGRASP , 	PARAMETERS : [ object ] }
+			]
+		}
+	},
+	MOVE : function( object , target ) {
+	
+		var object_location = FIND_LOCATION(object);
+		var target_location = FIND_LOCATION(target);
+		
+		if ( object_location.IS_ON_TOP && target_location.IS_ON_TOP ) {
+			table[object_location.POSITION].pop;
+			table[target_location.POSITION].push(object);
+			return { NODE_NAME : DONE }
+		} else {
+			throw "This can't be done";
+		}
+	
 	}
 };
 
