@@ -1,41 +1,56 @@
 
-/*
-        PUT-ON  <------------------------------
-          |                                    |
-          |--> FIND-SPACE -----------O----v    |
-          |--> GRASP --> CLEAR-TOP --O--> GET-RID-OF
-          |--> MOVE
-           --> UNGRASP
+var put_on = "put_on" , find_space = "find_space" , get_rid_of = "get_rid_of" , grasp = "grasp" , clear_top = "clear_top" , move = "move" , ungrasp = "ungrasp"
 
-Example
-        BX    BY
-        B1 __ B2
-*/
+var state = { 
+	actions : [ 
+		{ 
+			command : put-on , 
+			args : [ "B1" , "B2" ] 
+		} 
+	] , 
+	table : [ [ 'BX' , 'B1' ] , [] , [ 'BY' , 'B2' ] ]
+}
 
-var table = [ [ 'B1' , 'BX' ] , [] , [ 'B2' , 'BY' ] ];
+/* when there are no more actions to be completed then it is complete */
 
-var PUT_ON = "PUT_ON", 
-	FIND_SPACE = "FIND_SPACE",
-	GRASP = "GRASP" ,
-	CLEAR_TOP = "CLEAR_TOP",
-	GET_RID_OF = "GET_RID_OF",
-	MOVE = "MOVE",
-	UNGRASP = "UNGRASP",
-	DONE = "DONE";
+var possibilities = [ state ]
 
-var FIND_LOCATION = function( object ) {
+var goal_tree = {
+	put_on : {
+		calls : [ find_space , grasp , move , ungrasp ]
+	},
+	find_space : {
+		calls : [ get_rid_of , find_space ]
+	},
+	get_rid_of : {
+		calls : [ put_on ]
+	},
+	grasp : {
+		calls : [ clear_top ]
+	},
+	clear_top : {
+		calls : [ get_rid_of , clear_top ]
+	},
+	move : {
+	},
+	ungrasp : {
+	}
+}
+
+
+var location = function( object , table ) {
 	for( var position in table ) {
 		for( height in table[position] ) {
 			if ( object == table[position][height] ) {
 				return {
-					POSITION : position,
-					HEIGHT : height,
-					IS_ON_TOP : height + 1 == table[position].length
-				};
+					position : position,
+					height : height,
+					is_on_top : height == 0
+				}
 			}
 		}
 	}
-	throw "ERROR";
+	throw "ERROR"
 }
 
 
