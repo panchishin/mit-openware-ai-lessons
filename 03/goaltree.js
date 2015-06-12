@@ -90,10 +90,14 @@ var state = {
 	actions : [ 
 		{ 
 			command : put_on , 
+			args : [ "BX" , "BY" ] 
+		},
+		{ 
+			command : put_on , 
 			args : [ "B1" , "B2" ] 
 		} 
 	] , 
-	table : [ [ 'BX' , 'B1' , "T1" ] , [ "T2" ] , [ 'BY' , 'B2' , "T3" ] ],
+	table : [ [ 'BX' , 'B1' , "T1" ] , [ "T2" ] , [ 'BY' , 'B2' , "T3" ] , [ "T4" ] ],
 	action_history : []
 }
 
@@ -112,11 +116,35 @@ var process = function( state ) {
 	)
 }
 
-while( state.actions.length > 0 ) {
-	console.log( JSON.stringify( state.actions[ state.actions.length - 1 ] ) + " with " + JSON.stringify( state.table ) )
-	var states = process(state)
-	state = states[Math.floor(Math.random( ) * states.length)]
+var possibilities = [state]
+
+var count_moves = function( state ) {
+	var count = 0;
+	for( var index in state.actions ) {
+		if ( state.actions[index].command == move ) { count++ }
+	}
+	for( var index in state.action_history ) {
+		if ( state.action_history[index].command == move ) { count++ }
+	}
+	return count
 }
 
+while( possibilities[ 0 ].actions.length > 0 ) {
 
+	var states = process( possibilities.shift() )
+	while ( states.length > 0 ) {
+		possibilities.push( copy(states.pop()) )
+	}
 
+	possibilities.sort( function( state_a , state_b ) { return count_moves(state_a) > count_moves(state_b) } )
+
+}
+
+console.log( "possibilities = " + possibilities.length )
+for( var index in possibilities ) {
+	console.log( "	actions left : " + possibilities[index].actions.length + "	moves : " + count_moves(possibilities[index]) )
+}
+console.log( "solution === " )
+for( var index in possibilities[0].action_history ) {
+	console.log( JSON.stringify( possibilities[0].action_history[index] ) )
+}
