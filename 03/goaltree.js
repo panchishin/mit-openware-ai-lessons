@@ -1,51 +1,81 @@
-
 var put_on = "put_on" , find_space = "find_space" , get_rid_of = "get_rid_of" , grasp = "grasp" , clear_top = "clear_top" , move = "move" , ungrasp = "ungrasp"
 
-var state = { 
-	actions : [ 
-		{ 
-			command : put-on , 
-			args : [ "B1" , "B2" ] 
-		} 
-	] , 
-	table : [ [ 'BX' , 'B1' ] , [] , [ 'BY' , 'B2' ] ]
-}
-
-/* when there are no more actions to be completed then it is complete */
-
-var possibilities = [ state ]
-
 var goal_tree = {
-	put_on : {
-		calls : [ find_space , grasp , move , ungrasp ]
+	put_on : function( state , object , target ) {
+
+		if ( object.position == target.position && 
+			object.depth == target.depth - 1 ) {
+			return [state]
+		}
+
+		state.actions.push( { command : ungrasp ,	args : [ object.name ] } )
+		state.actions.push( { command : move ,		args : [ object.name , target.name ] } )
+		state.actions.push( { command : grasp ,		args : [ object.name , target.name ] } )
+		state.actions.push( { command : find_space, args : [ target.name , object.name ] } )
+		
+		return [state]
 	},
-	find_space : {
-		calls : [ get_rid_of , find_space ]
+	find_space : function( state , object , target ) {
+		
+		for ( var depth = object.depth - 1 ; depth >= 0 ; depth -- ) {
+			state.actions.push( { command : get_rid_of , args : [ state.table[object.position][depth] , target.name ] } )
+		}
+
+		return [state]
 	},
-	get_rid_of : {
-		calls : [ put_on ]
+	get_rid_of : function( start_state , object , target ) {
+
+		var result = []
+		
+		for( var position = 0 ; position < start_state.table.length ; position++ ) {
+			if ( position != object.position && position != target.position ) {
+				var state = copy( start_state )
+				state.actions.push( { command : put_on , args : [ object.name , state.table[position][0] ] } )
+				result.push(state)
+			}
+		}
+		return result
 	},
-	grasp : {
-		calls : [ clear_top ]
+	grasp : function( state , object , target ) {
+		
+		if ( ! object.is_on_top ) {
+			state.actions.push( { command : clear_top , args : [ object.name , target.name ] } )
+		}
+		
+		return [state]
 	},
-	clear_top : {
-		calls : [ get_rid_of , clear_top ]
+	clear_top : function( state , object , target ) {
+
+		for ( var depth = object.depth - 1 ; depth >= 0 ; depth -- ) {
+			state.actions.push( { command : get_rid_of , args : [ state.table[object.position][depth] , target.name ] } )
+		}
+
+		return [state]
 	},
-	move : {
+	move : function( state , object , target ) {
+		var item = state.table[object.position].shift()
+		state.table[target.position].unshift(item)
+		return [state]
 	},
-	ungrasp : {
+	ungrasp : function( state , object ) {
+		return [state]
 	}
 }
 
+var copy = function( object ) {
+	return JSON.parse(JSON.stringify(object))
+}
 
-var location = function( object , table ) {
+var location = function( name , table ) {
+	if ( ! name ) { return {} }
 	for( var position in table ) {
-		for( height in table[position] ) {
-			if ( object == table[position][height] ) {
+		for( depth in table[position] ) {
+			if ( name == table[position][depth] ) {
 				return {
+					name : name,
 					position : position,
-					height : height,
-					is_on_top : height == 0
+					depth : depth,
+					is_on_top : depth == 0
 				}
 			}
 		}
@@ -54,56 +84,39 @@ var location = function( object , table ) {
 }
 
 
-var rules = {
-	PUT_ON : function( object , target ) {
-		
-		var object_location = FIND_LOCATION(object);
-		var target_location = FIND_LOCATION(target);
-		
-		if ( object_location.POSITION == target_location.POSITION && 
-			object_location.HEIGHT = target_location.HEIGHT + 1 ) {
-			return { NODE_NAME : DONE }
-		}
 
-		return {
-			NODE_NAME : PUT_ON ,
-			NODE_TYPE : "and" ,
-			ACTIONS : [
-				{ ACTION : FIND_SPACE , PARAMETERS : [ target ] },
-				{ ACTION : GRASP , 		PARAMETERS : [ object ] },
-				{ ACTION : MOVE , 		PARAMETERS : [ object ] },
-				{ ACTION : UNGRASP , 	PARAMETERS : [ object ] }
-			]
-		}
-	},
-	MOVE : function( object , target ) {
-	
-		var object_location = FIND_LOCATION(object);
-		var target_location = FIND_LOCATION(target);
-		
-		if ( object_location.IS_ON_TOP && target_location.IS_ON_TOP ) {
-			table[object_location.POSITION].pop;
-			table[target_location.POSITION].push(object);
-			return { NODE_NAME : DONE }
-		} else {
-			throw "This can't be done";
-		}
-	
-	}
-};
 
-var test = function() {
-
-	var assert = require("assert");
-
-	assert.equal( 2 , 3 );
-
-	console.log("Success");
-
+var state = { 
+	actions : [ 
+		{ 
+			command : put_on , 
+			args : [ "B1" , "B2" ] 
+		} 
+	] , 
+	table : [ [ 'BX' , 'B1' , "T1" ] , [ "T2" ] , [ 'BY' , 'B2' , "T3" ] ],
+	action_history : []
 }
 
-test();
+/* when there are no more actions to be completed then it is complete */
 
+
+var process = function( state ) {
+	state = copy(state)
+	var action = state.actions.pop()
+	state.action_history.push(action)
+	
+	return goal_tree[action.command](
+		copy(state) ,
+		location( action.args[0] , state.table ) ,
+		location( action.args[1] , state.table )
+	)
+}
+
+while( state.actions.length > 0 ) {
+	console.log( JSON.stringify( state.actions[ state.actions.length - 1 ] ) + " with " + JSON.stringify( state.table ) )
+	var states = process(state)
+	state = states[Math.floor(Math.random( ) * states.length)]
+}
 
 
 
