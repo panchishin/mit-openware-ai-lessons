@@ -1,0 +1,67 @@
+Lecture 6
+
+Search : Games , Minimax , and Alpha-Beta
+
+There are a few ways to try to write a good chess program.  Some include mimicking human
+strategy and tactics or an IF-THEN-ELSE tree.  No one knows how to do either well.
+
+The way that deep-blue and other successful chess programs are based on is a look ahead
+and a "Linear Scoring Polynomial", which is a fancy way of another working method
+which could be named "This move is best"
+
+There is some useful voculabulary
+
+Branching Factor ( b )
+Depth ( d )
+Leif nodes = ( b ^ d )
+
+Mini-Max algorithm is as follows
+
+			Max			    x
+						   / \
+			Min			  x   x
+						 / \ / \
+						2  7 1  8
+						
+
+Minimizer evaluates the minimum of the choices below it
+
+			Max			    x
+						   / \
+			Min			  2   1
+						 / \ / \
+						2  7 1  8
+						
+then the maximizer evaluates the maximum of the choices below it.
+						
+			Max			    2
+						   / \
+			Min			  2   1
+						 / \ / \
+						2  7 1  8
+						
+
+But this still becomes very large fast
+we need a method to prune the tree as it is being made
+
+One way of doing this is via "Alpha-Beta" method which is a layer on top of Mini-Max
+
+			Max			  >=2
+						   / \
+			Min			<=2   ?
+						 / \ / \
+						2  7 ?  ?
+
+			Max			  >=2
+						   / \
+			Min			<=2 <=1 
+						 / \ / \
+						2  7 1  ?
+
+Now that the minimizer has discovered that it can make a score less than the maximizer
+can achieve elsewhere, then there is no reason to further evaluate the minimizers branches
+
+
+
+
+

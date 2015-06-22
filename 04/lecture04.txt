@@ -1,0 +1,37 @@
+Search : Depth-First , Hill Climbing , Beam
+
+"British Museum Search" - search everything
+
+Search != Maps
+
+Search is about choice
+
+Algorithm	Backtrack	Use Enqueued List	Informed	Limited Width
+British Museum	no		no			no		no
+Depth First	yes		yes			no		no
+Breadth First	no		yes			no		no
+Hill Climb	yes		yes			yes		no
+Beam		yes		yes			yes		yes
+
+Depth First Search ==
+Initialize Queue	--> Extend First Path on Queue	--> Put results on front of queue --> Extend ...
+Breadth First Search ==
+Initialize Queue	--> Extend First Path on Queue	--> Put results on end of queue --> Extend ...
+
+These are quite naive because they cover the same path.
+This can be fixed by not extending nodes that have already been extended
+This is called "use enqueued list"
+
+A Hill Climbing search uses additional information ( and informed search ) such as distance, weight, or score to order the item in the queue.
+
+Beam search is like Breadth first search with the informed search to limit the breadth of search.
+
+========
+Problems
+========
+* get stuck on a local maximum
+* the "telephone pole" problem, where there are sharp spikes
+* the direction of the nearest maximum is not in a direction or distance searched
+
+
+
