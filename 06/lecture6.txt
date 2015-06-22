@@ -61,6 +61,22 @@ One way of doing this is via "Alpha-Beta" method which is a layer on top of Mini
 Now that the minimizer has discovered that it can make a score less than the maximizer
 can achieve elsewhere, then there is no reason to further evaluate the minimizers branches
 
+This kind of alpha-beta arrangement has a cost of approximately
+
+Cost = 2 * b ^ ( d / 2 )
+
+Which is super awesome cost saving
+
+This cost savings is apparent in 4+ levels where by the alpha (the max score seen) can be used
+to cut off a lower beta (the min score) which is not a direct parent.
+
+Since the cost of computing the previous level is b times less, and the one before that is b^2
+and so on, one could compute all the levels up to d at a cost of only about 1 + 1/b times the
+cost of only computing the d'th level.
+
+This is called 'Progressive Deepening' and is used to make sure a move is available at any time.
+
+
 
 
 
