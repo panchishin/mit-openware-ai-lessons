@@ -5,12 +5,12 @@ The Best path instead of a Good path
 Oracle				Case 1	Case 2
 Branch & Bound			835	57
 + Extended List 		 38	35
-+ Admissible Heuristic		 70	 6
-A*				 27	 6
++ Admissible Heuristic	 70	 6
+A*						 27	 6
 
 
 
-The oracle method involves asking someone who knows and trying to find a better solution that costs less by always expanding at the branch that has the least cost
+The oracle method involves asking someone who knows and then trying to find a better solution that costs less by always expanding at the branch that has the least cost
 
 The branch & bound search is the same as oracle, but without the initial someone
 
